@@ -33,9 +33,18 @@ services:
       dockerfile: Dockerfile.single
     ports:
       - "8080:8502"
+    environment:
+      - SURREAL_ADDRESS=localhost
+      - SURREAL_PORT=8000
+      - SURREAL_USER=root
+      - SURREAL_PASS=root
+      - SURREAL_NAMESPACE=open_notebook
+      - SURREAL_DATABASE=staging
+      - OLLAMA_API_BASE=http://192.168.10.12:11434
     profiles:
       - single
     volumes:
       - ./.docker_data/data:/app/data
-      - ./docker2.env:/app/.env
+      - ./docker.env:/app/.env
       - ./google-credentials.json:/app/google-credentials.json
+      - ./surreal_data:/app/surreal_data

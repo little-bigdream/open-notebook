@@ -8,7 +8,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 # Install system dependencies required for building certain Python packages
 RUN apt-get update && apt-get upgrade -y && apt-get install -y \
     gcc \
-    curl wget libmagic-dev ffmpeg supervisor \
+    curl wget libmagic-dev ffmpeg supervisor git \
     && rm -rf /var/lib/apt/lists/*
 
 # Install SurrealDB
@@ -23,12 +23,22 @@ RUN uv sync
 # Create supervisor configuration directory
 RUN mkdir -p /etc/supervisor/conf.d
 
+# Create directories
+RUN mkdir -p /app/data /app/surreal_data
+
 # Copy supervisor configuration file
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-EXPOSE 8502
+# Add SurrealDB configuration to supervisord.conf
+RUN echo "\n\
+[program:surrealdb]\n\
+command=surreal start --log info --user root --pass root rocksdb:/app/surreal_data/mydatabase.db\n\
+autostart=true\n\
+autorestart=true\n\
+stderr_logfile=/var/log/surrealdb.err.log\n\
+stdout_logfile=/var/log/surrealdb.out.log" >> /etc/supervisor/conf.d/supervisord.conf
 
-RUN mkdir -p /app/data
+EXPOSE 8502 8000
 
 # Use supervisor as the main process
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

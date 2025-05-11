@@ -110,11 +110,13 @@ with ask_tab:
                     )
 
     if ask_bt:
-        placeholder.write(f"Searching for {question}")
-        st.session_state["ask_results"]["question"] = question
-        st.session_state["ask_results"]["answer"] = None
-
-        asyncio.run(stream_results())
+        if not question.strip():
+            st.error("请输入问题")
+        else:
+            placeholder.write(f"Searching for {question}")
+            st.session_state["ask_results"]["question"] = question
+            st.session_state["ask_results"]["answer"] = None
+            asyncio.run(stream_results())
 
     if st.session_state["ask_results"].get("answer"):
         with st.container(border=True):
@@ -147,15 +149,18 @@ with search_tab:
         search_sources = st.checkbox("Search Sources", value=True)
         search_notes = st.checkbox("Search Notes", value=True)
         if st.button("Search"):
-            if search_type == "Text Search":
-                st.write(f"Searching for {search_term}")
-                st.session_state["search_results"] = text_search(
-                    search_term, 100, search_sources, search_notes
-                )
-            elif search_type == "Vector Search":
-                st.write(f"Searching for {search_term}")
-                st.session_state["search_results"] = vector_search(
-                    search_term, 100, search_sources, search_notes
-                )
+            if not search_term.strip():
+                st.error("请输入搜索关键词")
+            else:
+                if search_type == "Text Search":
+                    st.write(f"Searching for {search_term}")
+                    st.session_state["search_results"] = text_search(
+                        search_term, 100, search_sources, search_notes
+                    )
+                elif search_type == "Vector Search":
+                    st.write(f"Searching for {search_term}")
+                    st.session_state["search_results"] = vector_search(
+                        search_term, 100, search_sources, search_notes
+                    )
         for item in st.session_state["search_results"]:
             results_card(item)
